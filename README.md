@@ -256,3 +256,24 @@
 **결과**: 3개 실패(RED). 컨트롤러가 아직 actorId를 보지 않고 임시 코드대로 `system`을 작성자로 넣습니다. 그래서 작성자가 다르게 나오고, actorId가 없어도 201로 성공해 버립니다.
 
 ![커밋 11 테스트 결과](docs/images/11.png)
+
+### 커밋 12: getActor로 작성자 지정 (GREEN)
+
+**변경 파일**: `post/controller/ApiV1PostController.java`의 `write`
+
+```java
+public RsData<PostDto> write(
+        @RequestParam(required = false) Integer actorId,   // ?actorId=3 을 받는다 (없으면 null)
+        @RequestBody @Valid PostWriteReqBody reqBody
+) {
+    Member actor = memberService.getActor(actorId);        // 없거나 잘못된 actorId면 여기서 401
+    Post post = postService.write(actor, reqBody.title, reqBody.content); // 요청한 회원을 작성자로 저장
+```
+
+- 커밋 10의 임시 코드(`system` 회원 사용)를 지웠습니다.
+- 문제 2에서 만든 `getActor`를 **그대로 재사용**합니다. 공통 메서드로 빼 둔 효과가 여기서 나타납니다.
+- 참고: `@Valid` 검사는 메서드 본문보다 먼저 실행됩니다. 그래서 제목이 비어 있으면 actorId 검사보다 먼저 `400`이 나옵니다. 기존 400 테스트들이 그대로 통과하는 이유입니다.
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 12 테스트 결과](docs/images/12.png)

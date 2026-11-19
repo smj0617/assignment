@@ -77,11 +77,12 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<PostDto> write(
+            @RequestParam(required = false) Integer actorId,
             @RequestBody @Valid PostWriteReqBody reqBody
     ) {
-        // 임시: 아직 actorId를 받지 않으므로 system 회원을 작성자로 둔다. (문제 5에서 actorId로 교체)
-        Member author = memberService.findByUsername("system").get();
-        Post post = postService.write(author, reqBody.title, reqBody.content);
+        // actorId가 없거나 없는 회원이면 여기서 401 예외 → 아래 코드는 실행되지 않는다
+        Member actor = memberService.getActor(actorId);
+        Post post = postService.write(actor, reqBody.title, reqBody.content);
 
         return new RsData<>(
                 "201-1",
