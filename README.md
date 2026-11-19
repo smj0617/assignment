@@ -277,3 +277,23 @@ public RsData<PostDto> write(
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 12 테스트 결과](docs/images/12.png)
+
+---
+
+## 문제 6: 댓글 작성 시 작성자 정보가 필요하다
+
+`POST /api/v1/posts/{글-번호}/comments?actorId={작성자-번호}`
+
+### 커밋 13: 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1PostCommentControllerTest.java`
+
+문제 5와 같은 패턴을 댓글에 적용합니다.
+
+- `t5` 댓글 작성 성공: `user2`의 번호를 actorId로 보냅니다. 응답의 `authorId`와 `authorName`(`유저2`)을 확인합니다.
+- `t5_2` actorId 없음 → `401`
+- `t5_3` 존재하지 않는 actorId → `401`
+
+**결과**: 3개 실패(RED). 댓글 작성 API는 아직 임시 코드대로 `system`을 작성자로 넣습니다.
+
+![커밋 13 테스트 결과](docs/images/13.png)
