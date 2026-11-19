@@ -3,6 +3,7 @@ package com.back.domain.member.member.service;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
 import com.back.global.globalExceptionHandler.GlobalExceptionHandler.MemberDuplicateUsernameException;
+import com.back.global.globalExceptionHandler.GlobalExceptionHandler.UnauthenticatedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,5 +35,14 @@ public class MemberService {
 
     public Optional<Member> findById(int id) {
         return memberRepository.findById(id);
+    }
+
+    // actorId가 필요한 모든 액션에서 쓰는 공통 진입점.
+    // actorId가 없거나(null) 해당 회원이 없으면 401로 응답되도록 UnauthenticatedException을 던진다.
+    public Member getActor(Integer actorId) {
+        if (actorId == null) throw new UnauthenticatedException();
+
+        return memberRepository.findById(actorId)
+                .orElseThrow(UnauthenticatedException::new);
     }
 }

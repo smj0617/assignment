@@ -37,6 +37,23 @@ public class GlobalExceptionHandler {
         );
     }
 
+    public static class UnauthenticatedException extends RuntimeException {
+        public UnauthenticatedException() {
+            super("로그인 후 이용해주세요.");
+        }
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<RsData<Void>> handle(UnauthenticatedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "401-1",
+                        ex.getMessage()
+                ),
+                UNAUTHORIZED
+        );
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<RsData<Void>> handle(NoSuchElementException ex) {
         return new ResponseEntity<>(

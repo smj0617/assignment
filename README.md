@@ -127,3 +127,34 @@
 **결과**: 3개 실패(RED). `/api/v1/members/me` 주소를 처리하는 메서드가 아직 없어서 404가 나옵니다.
 
 ![커밋 5 테스트 결과](docs/images/05.png)
+
+### 커밋 6: MemberDto와 UnauthenticatedException으로 구현 (GREEN)
+
+**변경 파일**
+
+1. `member/dto/MemberDto.java` (새 파일)
+   - 응답 전용 객체입니다. `id, createDate, updateDate, username, name`만 가지고 **`password`는 일부러 빼 두었습니다.**
+   - `Member` 엔티티를 그대로 반환하면 JSON에 비밀번호가 포함됩니다. 그래서 DTO로 필요한 정보만 골라서 내보냅니다.
+   - 명세의 키 이름이 `updateDate`라서 엔티티의 `modifyDate` 값을 `updateDate`로 옮겨 담습니다.
+2. `global/globalExceptionHandler/GlobalExceptionHandler.java`
+   - `UnauthenticatedException` 예외 클래스(메시지 `로그인 후 이용해주세요.`)와, 이를 `401` / `401-1`로 바꾸는 처리기를 추가했습니다.
+3. `member/service/MemberService.java`에 `getActor(Integer actorId)` 추가
+   ```java
+   if (actorId == null) throw new UnauthenticatedException();  // actorId를 안 보냈으면 401
+   return memberRepository.findById(actorId)
+           .orElseThrow(UnauthenticatedException::new);         // 그런 회원이 없으면 401
+   ```
+   - "요청한 사람(actor)이 누구인지 확인"하는 **공통 메서드**입니다. 이후 글/댓글 작성·수정·삭제에서도 재사용합니다.
+   - `orElseThrow`: Optional이 비어 있으면 예외를 던지고, 값이 있으면 꺼내 줍니다.
+4. `member/controller/ApiV1MemberController.java`에 `me` 추가
+   ```java
+   @GetMapping("/me")
+   public MemberDto me(@RequestParam(required = false) Integer actorId) {
+   ```
+   - `@RequestParam`은 주소의 `?actorId=1`을 메서드 파라미터로 받습니다.
+   - `required = false`로 둔 이유: 기본값(`true`)이면 actorId를 빠뜨렸을 때 스프링이 **400**을 먼저 내버립니다. 명세는 401이므로 일단 받고 `getActor`에서 직접 null을 검사합니다.
+   - 타입을 `int`가 아니라 `Integer`로 둔 이유: `int`는 null을 담을 수 없습니다.
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 6 테스트 결과](docs/images/06.png)
