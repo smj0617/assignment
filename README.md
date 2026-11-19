@@ -379,3 +379,21 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 2개 실패(RED). 아직 수정 API에 권한 검사가 없습니다.
 
 ![커밋 17 테스트 결과](docs/images/17.png)
+
+### 커밋 18: checkActorCanModify로 403 처리 (GREEN)
+
+**변경 파일**
+
+1. `post/entity/Post.java`에 `checkActorCanModify(Member actor)` 추가
+   - 지금은 삭제 규칙과 같습니다(작성자 본인만). 하지만 "관리자는 삭제만 가능"처럼 나중에 규칙이 달라질 수 있어서 메서드를 따로 두었습니다.
+2. `post/controller/ApiV1PostController.java`의 `modify`
+   ```java
+   Member actor = memberService.getActor(actorId);   // ① 누구인지 → 401
+   Post post = postService.findById(id).get();
+   post.checkActorCanModify(actor);                   // ② 본인 글인지 → 403
+   postService.modify(post, reqBody.title, reqBody.content); // ③ 통과 시 수정
+   ```
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 18 테스트 결과](docs/images/18.png)

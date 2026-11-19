@@ -62,6 +62,11 @@ public class Post extends BaseEntity {
         if (author.getId() != actor.getId()) throw new AccessDeniedException();
     }
 
+    // 수정 권한 검사: 지금은 삭제와 규칙이 같지만, 나중에 달라질 수 있어 메서드를 따로 둔다
+    public void checkActorCanModify(Member actor) {
+        if (author.getId() != actor.getId()) throw new AccessDeniedException();
+    }
+
     public boolean deleteComment(PostComment postComment) {
         if (postComment == null) return false;
 

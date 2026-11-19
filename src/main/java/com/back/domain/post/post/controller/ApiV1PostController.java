@@ -113,9 +113,13 @@ public class ApiV1PostController {
     @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable int id,
+            @RequestParam(required = false) Integer actorId,
             @RequestBody @Valid PostModifyReqBody reqBody
     ) {
+        Member actor = memberService.getActor(actorId);   // 누구인지 확인 (실패 시 401)
         Post post = postService.findById(id).get();
+
+        post.checkActorCanModify(actor);                   // 작성자 본인인지 확인 (아니면 403)
 
         postService.modify(post, reqBody.title, reqBody.content);
 
