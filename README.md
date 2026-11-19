@@ -158,3 +158,21 @@
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 6 테스트 결과](docs/images/06.png)
+
+---
+
+## 문제 3: 샘플 데이터 생성할 때 회원 6명도 만든다
+
+### 커밋 7: 회원 6명 생성 여부 테스트 먼저 작성 (RED)
+
+**변경 파일**: `src/test/java/com/back/global/initData/BaseInitDataTest.java` (새 파일)
+
+- 앱이 시작될 때 `BaseInitData`가 샘플 데이터를 만듭니다. 테스트에서도 앱이 뜨므로 샘플 데이터가 생깁니다.
+- 기대값을 `{username, name}` 2차원 배열로 적고, for문으로 하나씩 확인합니다.
+  - `findByUsername(username).get()`: 회원을 찾습니다. 없으면 `get()`에서 예외가 나서 테스트가 실패합니다.
+  - 이름과 비밀번호(`12345678`)가 맞는지 확인합니다.
+- 과제 원문의 `user3(유저4)`는 오타로 보고 `user4(유저4)`로 처리했습니다.
+
+**결과**: 실패(RED). 샘플 데이터에 아직 회원 생성 코드가 없어서 `system`을 찾지 못합니다(`NoSuchElementException`).
+
+![커밋 7 테스트 결과](docs/images/07.png)
