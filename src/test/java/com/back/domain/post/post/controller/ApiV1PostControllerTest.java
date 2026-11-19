@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -222,10 +224,12 @@ public class ApiV1PostControllerTest {
     @DisplayName("글 삭제")
     void t3() throws Exception {
         int id = 1;
+        Member actor = memberService.findByUsername("user1").get(); // 1번 글의 작성자
 
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/" + id)
+                                .param("actorId", String.valueOf(actor.getId()))
                 )
                 .andDo(print());
 
@@ -235,6 +239,31 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 삭제되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("글 삭제, 실패 - 작성자가 아님")
+    void t3_2() throws Exception {
+        Member other = memberService.findByUsername("user2").get(); // 1번 글의 작성자가 아님
+
+        mvc
+                .perform(delete("/api/v1/posts/1").param("actorId", String.valueOf(other.getId())))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+        assertThat(postService.findById(1)).isPresent(); // 글이 지워지지 않았어야 한다
+    }
+
+    @Test
+    @DisplayName("글 삭제, 실패 - actorId 없음")
+    void t3_3() throws Exception {
+        mvc
+                .perform(delete("/api/v1/posts/1"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
     }
 
 

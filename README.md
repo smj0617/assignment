@@ -317,3 +317,21 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 14 테스트 결과](docs/images/14.png)
+
+---
+
+## 문제 7: 글 삭제 시 작성자 본인이어야 한다
+
+`DELETE /api/v1/posts/{글-번호}?actorId={작성자-번호}`
+
+### 커밋 15: 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1PostControllerTest.java`
+
+- `t3` 글 삭제 성공: 1번 글의 작성자인 `user1`이 삭제하면 `200-1`입니다.
+- `t3_2` 작성자가 아님: `user2`가 1번 글을 삭제하려 하면 `403` / `403-1` / `권한이 없습니다.` 또 `postService.findById(1)`로 **글이 실제로 남아 있는지**도 확인합니다(응답만 403이고 글은 지워지는 버그를 막기 위해).
+- `t3_3` actorId 없음 → `401`
+
+**결과**: 2개 실패(RED). 아직 권한 검사가 없어서 남의 글도 지워지고, actorId 없이도 지워집니다.
+
+![커밋 15 테스트 결과](docs/images/15.png)
