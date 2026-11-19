@@ -454,3 +454,24 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 2개 실패(RED).
 
 ![커밋 21 테스트 결과](docs/images/21.png)
+
+### 커밋 22: checkActorCanModify로 403 처리 (GREEN)
+
+**변경 파일**
+
+1. `postComment/entity/PostComment.java`에 `checkActorCanModify(Member actor)` 추가(댓글 작성자가 아니면 403)
+2. `postComment/controller/ApiV1PostCommentController.java`의 `modify`: `getActor`(401) → `checkActorCanModify`(403) → 수정
+
+**결과**: 전체 테스트 35개 통과(GREEN). 문제 1~10 완료.
+
+![커밋 22 테스트 결과](docs/images/22.png)
+
+---
+
+## 정리: 요청 하나가 처리되는 순서 (수정/삭제 기준)
+
+1. `@Valid`: 요청 본문 검사 → 실패 시 `400-1`
+2. `memberService.getActor(actorId)`: 누구인지 확인 → 실패 시 `401-1`
+3. `findById(...).get()`: 대상 글/댓글 조회 → 없으면 `404-1`
+4. `checkActorCanModify` / `checkActorCanDelete`: 본인인지 확인 → 아니면 `403-1`
+5. 실제 수정/삭제 → `200-1`

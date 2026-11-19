@@ -33,6 +33,11 @@ public class PostComment extends BaseEntity {
         if (author.getId() != actor.getId()) throw new AccessDeniedException();
     }
 
+    // 수정 권한 검사: 댓글 작성자 본인이 아니면 403
+    public void checkActorCanModify(Member actor) {
+        if (author.getId() != actor.getId()) throw new AccessDeniedException();
+    }
+
     public void modify(String content) {
         this.content = content;
     }

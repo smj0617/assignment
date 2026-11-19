@@ -89,10 +89,14 @@ public class ApiV1PostCommentController {
     public RsData<Void> modify(
             @PathVariable int postId,
             @PathVariable int id,
+            @RequestParam(required = false) Integer actorId,
             @RequestBody @Valid PostCommentModifyReqBody reqBody
     ) {
+        Member actor = memberService.getActor(actorId);    // 누구인지 확인 (실패 시 401)
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+
+        postComment.checkActorCanModify(actor);             // 댓글 작성자 본인인지 확인 (아니면 403)
 
         postService.modifyComment(postComment, reqBody.content);
 
