@@ -191,3 +191,23 @@
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 8 테스트 결과](docs/images/08.png)
+
+---
+
+## 문제 4: 모든 글과 댓글은 작성자(author 필드)를 가진다
+
+### 커밋 9: 글/댓글 작성자 테스트 먼저 작성 (RED)
+
+**변경 파일**: `BaseInitDataTest.java`에 `t2`, `t3` 추가
+
+- 클래스에 `@AutoConfigureMockMvc`와 `MockMvc mvc`를 추가했습니다(t3에서 API를 호출하기 위해).
+- `t2` 샘플 데이터 작성자 확인
+  - 글 1~3의 작성자 username이 차례로 `user1, user2, user3`인지 확인합니다.
+  - 1번 글의 댓글 3개와 2번 글의 댓글 2개를 리스트 하나에 모읍니다.
+  - `.extracting(c -> c.getAuthor().getUsername())`로 작성자 username만 뽑아 `containsExactly("user1", "user2", "user3", "user1", "user2")`인지 확인합니다. 순서까지 정확히 같아야 통과합니다.
+- `t3` API 응답 확인
+  - 글 단건 조회와 댓글 단건 조회 응답 JSON에 `authorId`, `authorName`이 있어야 합니다.
+
+**결과**: `Post`와 `PostComment`에 `getAuthor()`가 없어서 컴파일 실패(RED).
+
+![커밋 9 테스트 결과](docs/images/09.png)
