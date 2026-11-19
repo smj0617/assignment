@@ -111,13 +111,14 @@ public class ApiV1PostCommentController {
     @Operation(summary = "작성")
     public RsData<PostCommentDto> write(
             @PathVariable int postId,
+            @RequestParam(required = false) Integer actorId,
             @Valid @RequestBody PostCommentWriteReqBody reqBody
     ) {
+        // 요청자 확인을 가장 먼저: 없거나 잘못된 actorId면 401
+        Member actor = memberService.getActor(actorId);
         Post post = postService.findById(postId).get();
 
-        // 임시: 아직 actorId를 받지 않으므로 system 회원을 작성자로 둔다. (문제 6에서 actorId로 교체)
-        Member author = memberService.findByUsername("system").get();
-        PostComment postComment = postService.writeComment(author, post, reqBody.content);
+        PostComment postComment = postService.writeComment(actor, post, reqBody.content);
 
         postService.flush();
 

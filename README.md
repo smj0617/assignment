@@ -297,3 +297,23 @@ public RsData<PostDto> write(
 **결과**: 3개 실패(RED). 댓글 작성 API는 아직 임시 코드대로 `system`을 작성자로 넣습니다.
 
 ![커밋 13 테스트 결과](docs/images/13.png)
+
+### 커밋 14: getActor로 작성자 지정 (GREEN)
+
+**변경 파일**: `postComment/controller/ApiV1PostCommentController.java`의 `write`
+
+```java
+@PathVariable int postId,                              // 주소의 {글-번호}
+@RequestParam(required = false) Integer actorId,       // ?actorId= 값
+...
+Member actor = memberService.getActor(actorId);        // 요청자 확인을 가장 먼저 (실패 시 401)
+Post post = postService.findById(postId).get();
+PostComment postComment = postService.writeComment(actor, post, reqBody.content);
+```
+
+- 커밋 10의 임시 코드(`system` 작성자)를 지웠습니다.
+- `getActor`를 글 조회보다 **먼저** 호출합니다. 로그인하지 않은 사람에게는 글이 있는지 없는지(404)보다 "로그인 후 이용해주세요"(401)를 먼저 알려 주는 것이 자연스럽기 때문입니다.
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 14 테스트 결과](docs/images/14.png)
