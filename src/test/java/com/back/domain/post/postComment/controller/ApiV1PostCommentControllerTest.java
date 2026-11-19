@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -96,10 +97,12 @@ public class ApiV1PostCommentControllerTest {
     void t3() throws Exception {
         int postId = 1;
         int id = 1;
+        Member actor = memberService.findByUsername("user1").get(); // 1번 댓글의 작성자
 
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                                .param("actorId", String.valueOf(actor.getId()))
                 )
                 .andDo(print());
 
@@ -109,6 +112,31 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 삭제되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, 실패 - 작성자가 아님")
+    void t3_2() throws Exception {
+        Member other = memberService.findByUsername("user2").get(); // 1번 댓글의 작성자가 아님
+
+        mvc
+                .perform(delete("/api/v1/posts/1/comments/1").param("actorId", String.valueOf(other.getId())))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+        assertThat(postService.findById(1).get().findCommentById(1)).isPresent(); // 댓글이 남아 있어야 한다
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, 실패 - actorId 없음")
+    void t3_3() throws Exception {
+        mvc
+                .perform(delete("/api/v1/posts/1/comments/1"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
     }
 
     @Test

@@ -397,3 +397,23 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 18 테스트 결과](docs/images/18.png)
+
+---
+
+## 문제 9: 댓글 삭제 시 작성자 본인이어야 한다
+
+`DELETE /api/v1/posts/{글-번호}/comments/{댓글-번호}?actorId={작성자-번호}`
+
+### 커밋 19: 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1PostCommentControllerTest.java`
+
+글 삭제(문제 7)와 같은 패턴을 댓글에 적용합니다.
+
+- `t3` 1번 댓글의 작성자 `user1`이 삭제 → `200-1`
+- `t3_2` `user2`가 삭제 시도 → `403-1`, 그리고 댓글이 **실제로 남아 있는지** `findCommentById(1)`로 확인
+- `t3_3` actorId 없음 → `401`
+
+**결과**: 2개 실패(RED).
+
+![커밋 19 테스트 결과](docs/images/19.png)
