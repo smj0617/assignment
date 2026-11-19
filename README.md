@@ -235,3 +235,24 @@
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 10 테스트 결과](docs/images/10.png)
+
+---
+
+## 문제 5: 글 작성 시 작성자 정보가 필요하다
+
+`POST /api/v1/posts?actorId={작성자-번호}`
+
+### 커밋 11: 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1PostControllerTest.java`
+
+- 테스트에 `MemberService`를 주입받습니다(샘플 회원 `user1`을 꺼내기 위해).
+- `t1` 글 작성 성공을 수정했습니다.
+  - `.param("actorId", user1의 번호)`로 요청합니다.
+  - 응답의 `authorId`가 user1의 번호이고 `authorName`이 `유저1`인지 확인합니다.
+- `t1_2` actorId 없음 → `401` / `401-1` / `로그인 후 이용해주세요.`
+- `t1_3` 존재하지 않는 actorId(`999999`) → `401`
+
+**결과**: 3개 실패(RED). 컨트롤러가 아직 actorId를 보지 않고 임시 코드대로 `system`을 작성자로 넣습니다. 그래서 작성자가 다르게 나오고, actorId가 없어도 201로 성공해 버립니다.
+
+![커밋 11 테스트 결과](docs/images/11.png)

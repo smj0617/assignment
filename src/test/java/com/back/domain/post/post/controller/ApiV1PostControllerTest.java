@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import org.hamcrest.Matchers;
@@ -29,14 +31,19 @@ public class ApiV1PostControllerTest {
     private MockMvc mvc;
     @Autowired
     private PostService postService;
+    @Autowired
+    private MemberService memberService;
 
 
     @Test
     @DisplayName("글 작성")
     void t1() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .param("actorId", String.valueOf(actor.getId()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -58,8 +65,50 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.id").value(post.getId()))
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.authorId").value(actor.getId()))
+                .andExpect(jsonPath("$.data.authorName").value("유저1"))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"));
+    }
+
+    @Test
+    @DisplayName("글 작성, 실패 - actorId 없음")
+    void t1_2() throws Exception {
+        mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("글 작성, 실패 - 존재하지 않는 actorId")
+    void t1_3() throws Exception {
+        mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .param("actorId", "999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
     }
 
     @Test
