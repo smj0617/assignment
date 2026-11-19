@@ -58,10 +58,14 @@ public class ApiV1PostCommentController {
     @Operation(summary = "삭제")
     public RsData<Void> delete(
             @PathVariable int postId,
-            @PathVariable int id
+            @PathVariable int id,
+            @RequestParam(required = false) Integer actorId
     ) {
+        Member actor = memberService.getActor(actorId);    // 누구인지 확인 (실패 시 401)
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+
+        postComment.checkActorCanDelete(actor);             // 댓글 작성자 본인인지 확인 (아니면 403)
 
         postService.deleteComment(post, postComment);
 

@@ -417,3 +417,22 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 2개 실패(RED).
 
 ![커밋 19 테스트 결과](docs/images/19.png)
+
+### 커밋 20: checkActorCanDelete로 403 처리 (GREEN)
+
+**변경 파일**
+
+1. `postComment/entity/PostComment.java`에 `checkActorCanDelete(Member actor)` 추가: 댓글 작성자 id와 요청자 id가 다르면 `AccessDeniedException`(403)
+2. `postComment/controller/ApiV1PostCommentController.java`의 `delete`
+   ```java
+   Member actor = memberService.getActor(actorId);      // ① 누구인지 → 401
+   Post post = postService.findById(postId).get();
+   PostComment postComment = post.findCommentById(id).get();
+   postComment.checkActorCanDelete(actor);               // ② 댓글 작성자인지 → 403
+   postService.deleteComment(post, postComment);         // ③ 통과 시 삭제
+   ```
+   - 권한은 **글 작성자가 아니라 댓글 작성자** 기준입니다. 그래서 `post`가 아닌 `postComment`에 검사 메서드를 두었습니다.
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 20 테스트 결과](docs/images/20.png)

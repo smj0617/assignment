@@ -2,6 +2,7 @@ package com.back.domain.post.postComment.entity;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.post.entity.Post;
+import com.back.global.globalExceptionHandler.GlobalExceptionHandler.AccessDeniedException;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -25,6 +26,11 @@ public class PostComment extends BaseEntity {
         this.author = author;
         this.post = post;
         this.content = content;
+    }
+
+    // 삭제 권한 검사: 댓글 작성자 본인이 아니면 403 (글의 checkActorCanDelete와 같은 방식)
+    public void checkActorCanDelete(Member actor) {
+        if (author.getId() != actor.getId()) throw new AccessDeniedException();
     }
 
     public void modify(String content) {
