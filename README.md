@@ -41,3 +41,28 @@
 **결과**: `Member`, `MemberService`, `ApiV1MemberController`가 아직 없어서 컴파일부터 실패합니다(RED).
 
 ![커밋 1 테스트 결과](docs/images/01.png)
+
+### 커밋 2: Member 엔티티 ~ 컨트롤러 구현 (GREEN)
+
+요청이 처리되는 흐름: **컨트롤러 → 서비스 → 리포지터리 → DB**
+
+**변경 파일 (모두 새 파일)**
+
+| 파일 | 역할 |
+|---|---|
+| `member/entity/Member.java` | DB `member` 테이블과 연결되는 클래스. `username`(중복 불가), `password`, `name` |
+| `member/repository/MemberRepository.java` | DB 접근. `findByUsername`은 메서드 이름만으로 스프링이 SQL을 만들어 줌 |
+| `member/service/MemberService.java` | 업무 로직. `join`은 `Member`를 만들어 저장 |
+| `member/controller/ApiV1MemberController.java` | HTTP 입구. `POST /api/v1/members/join` |
+
+**핵심 포인트**
+
+- `Member extends BaseEntity`: 번호(id), 생성일, 수정일은 068 코드의 `BaseEntity`가 이미 처리하므로 회원 고유 정보만 가집니다.
+- `@Column(unique = true)`: DB 수준에서 username 중복을 막는 안전장치입니다.
+- `MemberJoinReqBody`(record): 요청 JSON을 담는 그릇입니다. `@Size(min = 4, max = 30)` 같은 제약을 필드에 붙입니다.
+- `@RequestBody @Valid`: 요청 JSON을 객체로 바꾸고 제약을 검사합니다. 어기면 기존 `GlobalExceptionHandler`가 `400-1`로 응답합니다.
+- 상태 코드 `201`은 컨트롤러가 직접 정하지 않습니다. 068 코드의 `ResponseAspect`가 `RsData`의 `resultCode` 앞부분(`201`)을 읽어 HTTP 상태로 설정합니다.
+
+**결과**: 회원가입 테스트 2개를 포함해 전체 테스트 통과(GREEN).
+
+![커밋 2 테스트 결과](docs/images/02.png)
