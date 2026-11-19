@@ -144,10 +144,12 @@ public class ApiV1PostCommentControllerTest {
     void t4() throws Exception {
         int postId = 1;
         int id = 1;
+        Member actor = memberService.findByUsername("user1").get(); // 1번 댓글의 작성자
 
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                                .param("actorId", String.valueOf(actor.getId()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -163,6 +165,48 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 수정되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 실패 - 작성자가 아님")
+    void t4_2() throws Exception {
+        Member other = memberService.findByUsername("user2").get(); // 1번 댓글의 작성자가 아님
+
+        mvc
+                .perform(
+                        put("/api/v1/posts/1/comments/1")
+                                .param("actorId", String.valueOf(other.getId()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+        assertThat(postService.findById(1).get().findCommentById(1).get().getContent()).isEqualTo("댓글 1-1"); // 내용이 그대로여야 한다
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 실패 - actorId 없음")
+    void t4_3() throws Exception {
+        mvc
+                .perform(
+                        put("/api/v1/posts/1/comments/1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
     }
 
     @Test

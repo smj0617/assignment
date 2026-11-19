@@ -436,3 +436,21 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 20 테스트 결과](docs/images/20.png)
+
+---
+
+## 문제 10: 댓글 수정 시 작성자 본인이어야 한다
+
+`PUT /api/v1/posts/{글-번호}/comments/{댓글-번호}?actorId={작성자-번호}`
+
+### 커밋 21: 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1PostCommentControllerTest.java`
+
+- `t4` 1번 댓글 작성자 `user1`이 수정 → `200-1`
+- `t4_2` `user2`가 수정 시도 → `403-1`, 그리고 댓글 내용이 여전히 `댓글 1-1`인지 확인
+- `t4_3` actorId 없음 → `401`
+
+**결과**: 2개 실패(RED).
+
+![커밋 21 테스트 결과](docs/images/21.png)
