@@ -106,3 +106,24 @@
 **결과**: 전체 테스트 통과(GREEN).
 
 ![커밋 4 테스트 결과](docs/images/04.png)
+
+---
+
+## 문제 2: 내 정보 API
+
+`GET /api/v1/members/me?actorId={회원번호}`
+
+### 커밋 5: 성공/실패 테스트 먼저 작성 (RED)
+
+**변경 파일**: `ApiV1MemberControllerTest.java`에 `t4`, `t5`, `t6` 추가
+
+- `t4` 내 정보 성공
+  - 회원을 하나 가입시키고, 그 회원 번호를 `actorId`로 넘깁니다. `.param("actorId", ...)`는 주소 뒤에 `?actorId=...`를 붙입니다.
+  - 응답 JSON에 `id`, `createDate`, `updateDate`, `username`, `name`이 있어야 합니다.
+  - `jsonPath("$.password").doesNotExist()`: **비밀번호는 응답에 절대 나오면 안 됩니다.**
+- `t5` 존재하지 않는 actorId(`999999`) → `401` / `401-1` / `로그인 후 이용해주세요.`
+- `t6` actorId 자체가 없음 → 똑같이 `401`
+
+**결과**: 3개 실패(RED). `/api/v1/members/me` 주소를 처리하는 메서드가 아직 없어서 404가 나옵니다.
+
+![커밋 5 테스트 결과](docs/images/05.png)

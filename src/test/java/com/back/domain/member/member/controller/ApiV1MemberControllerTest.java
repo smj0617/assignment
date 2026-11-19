@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -104,5 +105,49 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("409-1"))
                 .andExpect(jsonPath("$.msg").value("dupUser(은)는 이미 사용중인 username 입니다."))
                 .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("내 정보")
+    void t4() throws Exception {
+        Member actor = memberService.join("meUser", "12345678", "나유저");
+
+        ResultActions resultActions = mvc
+                .perform(get("/api/v1/members/me").param("actorId", String.valueOf(actor.getId())))
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(actor.getId()))
+                .andExpect(jsonPath("$.createDate").exists())
+                .andExpect(jsonPath("$.updateDate").exists())
+                .andExpect(jsonPath("$.username").value("meUser"))
+                .andExpect(jsonPath("$.name").value("나유저"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("내 정보, 실패 - 존재하지 않는 actorId")
+    void t5() throws Exception {
+        mvc
+                .perform(get("/api/v1/members/me").param("actorId", "999999"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("내 정보, 실패 - actorId 없음")
+    void t6() throws Exception {
+        mvc
+                .perform(get("/api/v1/members/me"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 }
