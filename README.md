@@ -335,3 +335,27 @@ PostComment postComment = postService.writeComment(actor, post, reqBody.content)
 **결과**: 2개 실패(RED). 아직 권한 검사가 없어서 남의 글도 지워지고, actorId 없이도 지워집니다.
 
 ![커밋 15 테스트 결과](docs/images/15.png)
+
+### 커밋 16: AccessDeniedException으로 403 처리 (GREEN)
+
+**변경 파일**
+
+1. `global/globalExceptionHandler/GlobalExceptionHandler.java`
+   - `AccessDeniedException`(메시지 `권한이 없습니다.`)과, 이를 `403` / `403-1`로 바꾸는 처리기를 추가했습니다.
+2. `post/entity/Post.java`에 `checkActorCanDelete(Member actor)` 추가
+   ```java
+   if (author.getId() != actor.getId()) throw new AccessDeniedException();
+   ```
+   - "이 글을 지울 수 있는가?"는 **글 자신이 가장 잘 아는 규칙**이라 엔티티에 메서드로 두었습니다. 컨트롤러가 짧아지고, 수정 권한 등에서 같은 방식을 재사용할 수 있습니다.
+   - `equals` 대신 **id로 비교**합니다. `author`는 `LAZY`라서 실제 `Member`가 아닌 프록시(대리 객체)일 수 있습니다. 그런데 `BaseEntity.equals`는 클래스까지 같아야 같다고 보므로, 프록시와 실제 객체를 비교하면 틀린 결과가 나올 수 있습니다.
+3. `post/controller/ApiV1PostController.java`의 `delete`
+   ```java
+   Member actor = memberService.getActor(actorId);   // ① 누구인지 확인 → 실패 시 401
+   Post post = postService.findById(id).get();
+   post.checkActorCanDelete(actor);                   // ② 본인 글인지 확인 → 아니면 403
+   postService.delete(post);                          // ③ 통과했을 때만 삭제
+   ```
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 16 테스트 결과](docs/images/16.png)

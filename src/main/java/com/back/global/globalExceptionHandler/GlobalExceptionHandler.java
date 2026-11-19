@@ -37,6 +37,23 @@ public class GlobalExceptionHandler {
         );
     }
 
+    public static class AccessDeniedException extends RuntimeException {
+        public AccessDeniedException() {
+            super("권한이 없습니다.");
+        }
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RsData<Void>> handle(AccessDeniedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "403-1",
+                        ex.getMessage()
+                ),
+                FORBIDDEN
+        );
+    }
+
     public static class UnauthenticatedException extends RuntimeException {
         public UnauthenticatedException() {
             super("로그인 후 이용해주세요.");
