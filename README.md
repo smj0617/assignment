@@ -79,3 +79,30 @@
 → DB 제약에만 맡기면 사용자에게 친절한 메시지를 줄 수 없습니다. 저장하기 **전에** 직접 검사해야 하는 이유입니다.
 
 ![커밋 3 테스트 결과](docs/images/03.png)
+
+### 커밋 4: MemberDuplicateUsernameException으로 409 처리 (GREEN)
+
+**변경 파일**
+
+1. `global/globalExceptionHandler/GlobalExceptionHandler.java`
+   - **예외 클래스 추가**: `MemberDuplicateUsernameException` (과제 명세대로 `GlobalExceptionHandler` 안에 내부 클래스로 둠)
+     - 생성자에서 `"%s(은)는 이미 사용중인 username 입니다."` 메시지를 만들어 둡니다.
+     - `IllegalArgumentException` 같은 일반 예외 대신 **이름만 봐도 무슨 상황인지 알 수 있는 전용 예외**를 씁니다.
+   - **예외 처리기 추가**: `@ExceptionHandler(MemberDuplicateUsernameException.class)`
+     - 앱 어디에서든 이 예외가 던져지면 이 메서드가 받아서 `409` + `{"resultCode": "409-1", "msg": ...}`로 바꿔 응답합니다.
+   - import를 `HttpStatus.*`로 바꿔 `CONFLICT`도 쓸 수 있게 했습니다.
+2. `member/service/MemberService.java`의 `join`
+   ```java
+   memberRepository.findByUsername(username)   // 같은 username 회원을 찾아본다
+           .ifPresent(_ -> {                    // 있으면(= 중복이면)
+               throw new MemberDuplicateUsernameException(username); // 예외를 던진다
+           });
+   ```
+   - `Optional.ifPresent`는 "값이 있을 때만 실행"이라는 뜻입니다. `if (optional.isPresent())`를 짧게 쓴 형태입니다.
+   - `_`는 Java 22+의 "사용하지 않는 변수" 표기입니다. 찾은 회원 객체는 쓰지 않으므로 `_`로 둡니다.
+
+**흐름**: 컨트롤러 → `join` → 중복 발견 → 예외 → `GlobalExceptionHandler`가 409 응답
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 4 테스트 결과](docs/images/04.png)

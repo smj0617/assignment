@@ -12,12 +12,31 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+    public static class MemberDuplicateUsernameException extends RuntimeException {
+        private final String username;
+
+        public MemberDuplicateUsernameException(String username) {
+            super("%s(은)는 이미 사용중인 username 입니다.".formatted(username));
+            this.username = username;
+        }
+    }
+
+    @ExceptionHandler(MemberDuplicateUsernameException.class)
+    public ResponseEntity<RsData<Void>> handle(MemberDuplicateUsernameException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "409-1",
+                        ex.getMessage()
+                ),
+                CONFLICT
+        );
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<RsData<Void>> handle(NoSuchElementException ex) {
         return new ResponseEntity<>(
