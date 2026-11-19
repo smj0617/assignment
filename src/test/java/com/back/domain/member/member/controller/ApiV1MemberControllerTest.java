@@ -78,4 +78,31 @@ public class ApiV1MemberControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.resultCode").value("400-1"));
     }
+
+    @Test
+    @DisplayName("회원가입, 실패 - 이미 사용중인 username")
+    void t3() throws Exception {
+        memberService.join("dupUser", "12345678", "중복유저");
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "dupUser",
+                                            "password": "12345678",
+                                            "name": "다른유저"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().methodName("join"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.resultCode").value("409-1"))
+                .andExpect(jsonPath("$.msg").value("dupUser(은)는 이미 사용중인 username 입니다."))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
 }

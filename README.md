@@ -66,3 +66,16 @@
 **결과**: 회원가입 테스트 2개를 포함해 전체 테스트 통과(GREEN).
 
 ![커밋 2 테스트 결과](docs/images/02.png)
+
+### 커밋 3: username 중복 시 409 테스트 추가 (RED)
+
+**변경 파일**: `ApiV1MemberControllerTest.java`에 `t3` 추가
+
+- 먼저 `memberService.join("dupUser", ...)`로 회원을 하나 만들어 둡니다(준비 단계).
+- 같은 username `dupUser`로 가입 API를 호출합니다.
+- 기대 결과: 상태 `409 Conflict`, `resultCode` `409-1`, 메시지 `dupUser(은)는 이미 사용중인 username 입니다.`
+
+**결과**: 실패(RED). 아직 중복 검사 코드가 없어서 그대로 저장을 시도합니다. 그러다 DB의 `unique` 제약에 걸려 `DataIntegrityViolationException`이 나고, 409가 아닌 서버 오류가 됩니다.
+→ DB 제약에만 맡기면 사용자에게 친절한 메시지를 줄 수 없습니다. 저장하기 **전에** 직접 검사해야 하는 이유입니다.
+
+![커밋 3 테스트 결과](docs/images/03.png)
