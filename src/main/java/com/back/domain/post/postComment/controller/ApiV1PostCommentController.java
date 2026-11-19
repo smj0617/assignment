@@ -1,6 +1,8 @@
 package com.back.domain.post.postComment.controller;
 
 import com.back.domain.post.post.entity.Post;
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
@@ -22,6 +24,7 @@ import java.util.List;
 @Tag(name = "ApiV1PostCommentController", description = "API 댓글 컨트롤러")
 public class ApiV1PostCommentController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -112,7 +115,9 @@ public class ApiV1PostCommentController {
     ) {
         Post post = postService.findById(postId).get();
 
-        PostComment postComment = postService.writeComment(post, reqBody.content);
+        // 임시: 아직 actorId를 받지 않으므로 system 회원을 작성자로 둔다. (문제 6에서 actorId로 교체)
+        Member author = memberService.findByUsername("system").get();
+        PostComment postComment = postService.writeComment(author, post, reqBody.content);
 
         postService.flush();
 

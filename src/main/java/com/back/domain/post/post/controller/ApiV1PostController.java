@@ -2,6 +2,8 @@ package com.back.domain.post.post.controller;
 
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.service.PostService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +23,7 @@ import java.util.List;
 @Tag(name = "ApiV1PostController", description = "API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -76,7 +79,9 @@ public class ApiV1PostController {
     public RsData<PostDto> write(
             @RequestBody @Valid PostWriteReqBody reqBody
     ) {
-        Post post = postService.write(reqBody.title, reqBody.content);
+        // 임시: 아직 actorId를 받지 않으므로 system 회원을 작성자로 둔다. (문제 5에서 actorId로 교체)
+        Member author = memberService.findByUsername("system").get();
+        Post post = postService.write(author, reqBody.title, reqBody.content);
 
         return new RsData<>(
                 "201-1",

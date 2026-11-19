@@ -211,3 +211,27 @@
 **결과**: `Post`와 `PostComment`에 `getAuthor()`가 없어서 컴파일 실패(RED).
 
 ![커밋 9 테스트 결과](docs/images/09.png)
+
+### 커밋 10: Post/PostComment에 author 추가 (GREEN)
+
+**변경 파일**
+
+| 파일 | 변경 내용 |
+|---|---|
+| `post/entity/Post.java` | `@ManyToOne(fetch = LAZY) Member author` 필드 추가. 생성자 `Post(author, title, content)`, `addComment(author, content)` |
+| `postComment/entity/PostComment.java` | `Member author` 필드 추가. 생성자 `PostComment(author, post, content)` |
+| `post/service/PostService.java` | `write(author, title, content)`, `writeComment(author, post, content)`로 작성자를 받음 |
+| `post/dto/PostDto.java`, `postComment/dto/PostCommentDto.java` | 응답에 `authorId`, `authorName` 추가 |
+| `global/initData/BaseInitData.java` | 샘플 글/댓글을 만들 때 user1~3을 작성자로 지정 |
+| `ApiV1PostController.java`, `ApiV1PostCommentController.java` | 작성 API가 임시로 `system` 회원을 작성자로 사용 |
+
+**핵심 개념**
+
+- `@ManyToOne`: "여러 글(Many)이 한 회원(One)에 속한다." DB `post` 테이블에 `author_id` 컬럼(외래키)이 생기고, 그 값이 `member.id`를 가리킵니다.
+- `fetch = LAZY`(지연 로딩): 글을 조회할 때 작성자 정보는 바로 가져오지 않습니다. `post.getAuthor().getName()`처럼 **실제로 쓸 때** DB에서 가져옵니다. 필요 없는 조회를 줄이는 설정입니다.
+- 응답에는 `Member` 객체 전체가 아니라 `authorId`, `authorName`만 담습니다(커밋 6에서 본 것처럼 password 노출 방지).
+- **임시 코드**: 이번 문제는 "작성자 필드 추가"까지입니다. 글/댓글 작성 API는 아직 actorId를 받지 않으므로 잠시 `system` 회원을 작성자로 넣었습니다. 문제 5, 6에서 actorId로 바꿉니다.
+
+**결과**: 전체 테스트 통과(GREEN).
+
+![커밋 10 테스트 결과](docs/images/10.png)
