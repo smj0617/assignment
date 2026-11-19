@@ -1,5 +1,6 @@
 package com.back.global.initData;
 
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +17,32 @@ public class BaseInitData {
     @Autowired
     @Lazy
     private BaseInitData self;
+    private final MemberService memberService;
     private final PostService postService;
 
     @Bean
     ApplicationRunner baseInitDataApplicationRunner() {
         return args -> {
             self.work1();
+            self.work2();
         };
     }
 
+    // 회원은 글/댓글의 작성자가 되므로 글보다 먼저 만든다.
     @Transactional
     public void work1() {
+        if (memberService.count() > 0) return;
+
+        memberService.join("system", "12345678", "시스템");
+        memberService.join("admin", "12345678", "관리자");
+        memberService.join("user1", "12345678", "유저1");
+        memberService.join("user2", "12345678", "유저2");
+        memberService.join("user3", "12345678", "유저3");
+        memberService.join("user4", "12345678", "유저4");
+    }
+
+    @Transactional
+    public void work2() {
         if (postService.count() > 0) return;
 
         Post post1 = postService.write("제목 1", "내용 1");
